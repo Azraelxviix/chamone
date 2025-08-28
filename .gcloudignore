@@ -1,0 +1,44 @@
+# This file prevents unnecessary files from being uploaded to Cloud Build,
+# ensuring a faster and more secure deployment process.
+
+# Git / Version Control
+.git
+.gitignore
+
+# Python virtual environments
+.venv
+venv
+env
+
+# Python caches and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.cache/
+.pytest_cache/
+*.egg-info
+
+# IDE and editor configuration
+.idea/
+.vscode/
+
+# Local configuration and secret files
+.env
+*.env
+
+# Build artifacts and logs
+*.log
+build/
+dist/
+
+# Local development and test files
+tests/
+*.test
+*.spec
+
+# Exclude temporary files and directories
+tmp/
+temp/
+*.bak
+*.swp

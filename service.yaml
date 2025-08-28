@@ -1,0 +1,96 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knowledge-base-webhook
+  namespace: '263110559997'
+  labels:
+    goog-drz-cloudfunctions-location: us-central1
+    goog-drz-cloudfunctions-id: knowledge-base-webhook
+    goog-solutions-console-deployment-name: generative-ai-knowledge-base
+    goog-solutions-console-solution-id: generative-ai-knowledge-base
+    goog-managed-by: cloudfunctions
+    goog-cloudfunctions-runtime: python312
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    run.googleapis.com/client-name: cloudfunctions
+    cloudfunctions.googleapis.com/trigger-type: EVENT_TRIGGER
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/cloudsql-instances: "thebestever:us-central1:genai-rag-db-6bdb68ec"
+        autoscaling.knative.dev/maxScale: '3'
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 1
+      timeoutSeconds: 1800
+      serviceAccountName: knowledge-base-webhook-sa@thebestever.iam.gserviceaccount.com
+      containers:
+        - name: worker
+          image: us-central1-docker.pkg.dev/thebestever/knowledge-base-repo/knowledge-base-webhook:latest
+          ports:
+            - name: http1
+              containerPort: 8080
+          env:
+            - name: PROJECT_ID
+              value: "thebestever"
+            - name: VERTEX_AI_LOCATION
+              value: "us-central1"
+            - name: DOCAI_LOCATION
+              value: "us"
+            - name: INPUT_BUCKET
+              value: "knowledge-base-docs-thebestever"
+            - name: LOCK_BUCKET
+              value: "kblock"
+            - name: JSON_BUCKET
+              value: "kbjson"
+            - name: LOG_BUCKET
+              value: "kblogs"
+            - name: INSTRUCTIONS_BUCKET
+              value: "kbinfo"
+            - name: DOCAI_PROCESSOR_ID
+              value: "6e8f23fa5796a22b"
+            - name: INDEX_ENDPOINT_ID
+              value: "556724518584844288"
+            - name: DEPLOYED_INDEX_ID
+              value: "analysis_1756251260790"
+            - name: MASTER_INSTRUCTIONS_FILE
+              value: "master_instructions.txt"
+            - name: DB_USER
+              value: "retrieval-service"
+            - name: DB_NAME
+              value: "postgres"
+            - name: INSTANCE_CONNECTION_NAME
+              value: "thebestever:us-central1:genai-rag-db-6bdb68ec"
+            - name: ANALYSIS_MODEL
+              value: "models/gemini-2.5-pro"
+            - name: CLEANING_MODEL
+              value: "models/gemini-2.5-flash"
+          resources:
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.4
+          args:
+            - "--structured-logs"
+            - "--port=5432"
+            - "--address=127.0.0.1"
+            - "thebestever:us-central1:genai-rag-db-6bdb68ec"
+          securityContext:
+            runAsUser: 1000
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+  eventTrigger:
+    trigger: projects/thebestever/topics/knowledge-base-docs-topic
+    service: storage.googleapis.com
+    eventType: google.cloud.storage.object.finalize
+    filters:
+      - attribute: bucket
+        value: knowledge-base-docs-thebestever

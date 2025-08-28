@@ -1,0 +1,38 @@
+# This file prevents local development files from being sent to the Docker daemon,
+# resulting in a faster, smaller, and more secure build context.
+
+# Docker and deployment artifacts
+Dockerfile
+.dockerignore
+service.yaml
+
+# Git / Version Control
+.git
+.gitignore
+
+# Python virtual environments
+.venv
+venv
+env
+
+# Python caches and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.cache/
+.pytest_cache/
+*.egg-info
+
+# IDE and editor configuration
+.idea/
+.vscode/
+
+# Local configuration and secret files
+.env
+*.env
+
+# Build artifacts and logs
+*.log
+build/
+dist/

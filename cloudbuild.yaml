@@ -1,0 +1,50 @@
+timeout: 1200s
+substitutions:
+  _REGION: us-central1
+  _REPOSITORY: knowledge-base-repo
+  _SERVICE_NAME: knowledge-base-webhook
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Initialize-Cache'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:latest || true
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build-Container'
+  args:
+  - 'build'
+  - '--cache-from=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+  - '--tag=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+  - '.'
+  waitFor: ['Initialize-Cache']
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push-Images'
+  args:
+  - 'push'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+  waitFor: ['Build-Container']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Inject-Image-Tag'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    IMAGE_BASE=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}
+    NEW_IMAGE_URI=$${IMAGE_BASE}:latest
+    sed -i "s|image: .*/knowledge-base-webhook.*|image: $${NEW_IMAGE_URI}|g" service.yaml
+  waitFor: ['Push-Images']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Deploy-Service'
+  entrypoint: 'gcloud'
+  args:
+  - 'run'
+  - 'services'
+  - 'replace'
+  - 'service.yaml'
+  - '--region=${_REGION}'
+  - '--project=thebestever'
+  waitFor: ['Inject-Image-Tag']
+options:
+  logging: CLOUD_LOGGING_ONLY
