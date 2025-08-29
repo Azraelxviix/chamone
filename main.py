@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# main.py - Version 17.0.0
+# Updated by Gemini & gr0k 🚀
+# Digitally signed by gr0k ✅
+
 #### GOLDEN RULE FOR THIS SCRIPT ####
 # WE ARE NOT USING THE GOOGLE-GENERATIVEAI SDK.
 # ALL GEMINI INTERACTIONS ARE HANDLED THROUGH THE ROBUST GOOGLE-CLOUD-AIPLATFORM SDK.
@@ -290,7 +297,7 @@ def unit_3_clean_text(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
         
     try:
-        model = aiplatform.gapic.ModelServiceClient().get_model(name=f"projects/{PROJECT_ID}/locations/{REGION}/publishers/google/models/{CLEANING_MODEL}")
+        model = aiplatform.GenerativeModel(CLEANING_MODEL)
         system_prompt = """
         You are an expert legal text cleaner. Your task is to process raw OCR text from a legal document.
         1. Correct OCR errors and typos.
@@ -301,7 +308,7 @@ def unit_3_clean_text(state: Dict[str, Any]) -> Dict[str, Any]:
         6. Preserve the core legal text, structure, and paragraph breaks.
         Return ONLY the cleaned text, with no additional commentary.
         """
-        response = model.predict([{"role": "system", "content": system_prompt}, {"role": "user", "content": state["full_text"]}])
+        response = model.generate_content([system_prompt, state["full_text"]])
         state["cleaned_text"] = response.text
         update_document_status(state["document_id"], "CLEANING_COMPLETE")
         logging.info("   Text cleaned successfully.")
@@ -349,7 +356,7 @@ def unit_5_analyze_with_gemini(state: Dict[str, Any]) -> Dict[str, Any]:
         return state
 
     try:
-        model = aiplatform.gapic.ModelServiceClient().get_model(name=f"projects/{PROJECT_ID}/locations/{REGION}/publishers/google/models/{ANALYSIS_MODEL}")
+        model = aiplatform.GenerativeModel(ANALYSIS_MODEL)
         system_prompt = """
         You are a legal analysis expert. Analyze the provided legal document text and return a JSON object with the following schema:
         {
@@ -363,7 +370,7 @@ def unit_5_analyze_with_gemini(state: Dict[str, Any]) -> Dict[str, Any]:
         }
         Return ONLY the raw JSON object.
         """
-        response = model.predict([{"role": "system", "content": system_prompt}, {"role": "user", "content": state["cleaned_text"]}])
+        response = model.generate_content([system_prompt, state["cleaned_text"]])
         
         # Clean the response to get a valid JSON string
         json_string = re.search(r'```json\n({.*})\n```', response.text, re.DOTALL)
@@ -422,13 +429,14 @@ def unit_7_generate_embeddings(state: Dict[str, Any]) -> Dict[str, Any]:
         state["chunks"] = text_splitter.split_text(state["cleaned_text"])
         logging.info(f"   Text split into {len(state['chunks'])} chunks.")
         
-        # 2. Generate embeddings
-        model = aiplatform.gapic.PredictionServiceClient(client_options={"api_endpoint": f"{REGION}-aiplatform.googleapis.com"})
-        endpoint = f"projects/{PROJECT_ID}/locations/{REGION}/publishers/google/models/{EMBEDDING_MODEL}"
-        instances = [{"content": chunk} for chunk in state["chunks"]]
-        response = model.predict(endpoint=endpoint, instances=instances)
+        # 2. Generate embeddings using the Vertex AI SDK
+        from vertexai.language_models import TextEmbeddingModel
+        model = TextEmbeddingModel.from_pretrained(EMBEDDING_MODEL)
         
-        state["embeddings"] = [prediction['embeddings']['values'] for prediction in response.predictions]
+        # The SDK handles batching up to the API limit
+        response = model.get_embeddings(state["chunks"])
+        
+        state["embeddings"] = [embedding.values for embedding in response]
         update_document_status(state["document_id"], "EMBEDDING_COMPLETE")
         logging.info(f"   Successfully generated {len(state['embeddings'])} embeddings.")
         logging.info("✅ Unit 7: Complete.")
