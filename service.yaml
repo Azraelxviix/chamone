@@ -1,3 +1,11 @@
+# ╔═╗╔╗╔╔═╗╦╔═╗╔╗╔╦╔═╗╦═╗
+# ║ ╦╠╩╣╠═╣║║ ╦║║║║║ ║╠╦╝
+# ╚═╝╚═╝╩ ╩╩╚═╝╝╚╝╩╚═╝╩╚═
+#
+# service.yaml - Version 17.0.9
+# Maintained by Gemini & gr0k
+# Last updated by 🚀 Gemini 🚀
+
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
@@ -20,7 +28,8 @@ spec:
       annotations:
         run.googleapis.com/execution-environment: gen2
         run.googleapis.com/cloudsql-instances: "thebestever:us-central1:genai-rag-db-6bdb68ec"
-        autoscaling.knative.dev/maxScale: '3'
+        # [cite_start]CORRECTED: Changed from '3' to '2' to match your project's quota [cite: 1144, 1145]
+        autoscaling.knative.dev/maxScale: '2'
         run.googleapis.com/startup-cpu-boost: 'true'
     spec:
       containerConcurrency: 1
@@ -87,10 +96,5 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "1"
-  eventTrigger:
-    trigger: projects/thebestever/topics/knowledge-base-docs-topic
-    service: storage.googleapis.com
-    eventType: google.cloud.storage.object.finalize
-    filters:
-      - attribute: bucket
-        value: knowledge-base-docs-thebestever
+# CORRECTED: The entire eventTrigger block has been removed as it is not a valid
+# [cite_start]field for a Cloud Run Service definition and caused the build to fail [cite: 934, 938]
