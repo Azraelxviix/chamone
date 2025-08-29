@@ -21,9 +21,10 @@ psycopg_pool>=3.1.0 # For efficient connection pooling
 # --- Text Processing ---
 langchain-text-splitters>=0.2.0
 
+
+#💀💀💀💀💀💀💀💀💀   OLD BUT KEEPING FOR BRAIN STORMS
 # --- CHANGELOG & DEPENDENCY ANALYSIS ---
-#
-# # Cloud & Framework
+## # Cloud & Framework
 # functions-framework==3.8.3
 # cloudevents==1.12.0
 # firebase-admin==6.9.0
@@ -32,40 +33,33 @@ langchain-text-splitters>=0.2.0
 # cloud-sql-python-connector[pg8000]
 
 # Google Cloud SDKs (Modernized)
-google-genai
-google-cloud-aiplatform==1.108.0
-google-cloud-documentai==3.5.0
-google-cloud-storage==2.19.0
-google-api-core==2.25.1
-google-auth==2.40.3
-
-
-
-#💀💀💀💀💀💀💀💀💀   OLD BUT KEEPING FOR BRAIN STORMS
+# google-genai
+# google-cloud-aiplatform==1.108.0
+# google-cloud-documentai==3.5.0
+# google-cloud-storage==2.19.0
+# google-api-core==2.25.1
+# google-auth==2.40.3
+#--------------------------
 # NLP & Embeddings (Validated Set)
 # #transformers==4.52.4
 # huggingface-hub==0.31.4
 # langchain-text-splitters==0.3.9
 # torch
-
+#-------------------------
 #  # Database & Data Handling
 #   psycopg[binary]==3.2.9
 ###  numpy==2.3.2
 ###  Flask==2.2.2
 #  Werkzeug<3.0
 #   hf_xet>=0.1.0
-#
-#
-# --- DEPRECATED & REMOVED MODULES ---
-#
-# v17.0.5: Removed google-genai as all calls now use the google-cloud-aiplatform SDK.
+#--------------------------------------------------
+## --- DEPRECATED & REMOVED MODULES ---
+## v17.0.5: Removed google-genai as all calls now use the google-cloud-aiplatform SDK.
 # # 💀 google-genai (last known: 1.32.0)
-#
-# v17.0.4: Removed local embedding packages to migrate to Vertex AI managed embeddings.
+## v17.0.4: Removed local embedding packages to migrate to Vertex AI managed embeddings.
 # # 💀 sentence-transformers (last known: 5.1.0)
 # # 💀 transformers (last known: 4.52.4)
 # # 💀 huggingface-hub (last known: 0.31.4)
 # # 💀 torch (last known: 2.8.0+cpu)
-#
-# v17.0.3: Added psycopg_pool for database connection management.
-#
+## v17.0.3: Added psycopg_pool for database connection management.
+
